@@ -15,13 +15,14 @@ let eventInfo = {
   eventName: "default",
   attendies: ["Default"],
   eventDates: 7,
-  timeslots: [[[new TimeSlot(0, 0, 1)]]], // [user][column][timeslot]
+  timeslots: [[[new TimeSlot(0, 0, 1)],[],[],[],[],[],[],[]]], // [user][column][timeslot]
 };
 
 let UIState = {
   editButton: { x: 10, y: 10, width: 40, height: 20, curve: 10, pressed: false }
 };
 let selectingState = false;
+let lastColumn = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -38,7 +39,7 @@ function draw() {
 
   fill(100, 50);
 
-  if (user == -1 || modeView) {
+  if (user == -1 || UIState.editButton.pressed) {
     for (let i = 0; i < eventInfo.timeslots.length; i++) {
       for (let j = 0; j < eventInfo.timeslots[i].length; j++) {
         for (let k = 0; k < eventInfo.timeslots[i][j].length; k++) {
@@ -56,8 +57,9 @@ function draw() {
           else {
             fill(100, 50);
           }
+          eventInfo.timeslots[user][j][k].render();
         }
-        eventInfo.timeslots[user][j][k].render();
+        
       }
   }
 
@@ -111,34 +113,17 @@ function mousePressed(_event) {
   if (pillCollision(UIState.editButton.x, UIState.editButton.y, UIState.editButton.width, UIState.editButton.height, UIState.editButton.curve)) {
     UIState.editButton.pressed = !UIState.editButton.pressed;
   }
-  drawflag = true;
-  let closestGridPosition = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
 
+  drawflag = true;
 
   if (user != -1) {
-    for (var i = 0; i < eventInfo.timeslots[user].length; i++) {
-      var currentCol = closestGridPosition[0] - 1;
-      var currentRow0 = closestGridPosition[1] - 1;
-      var currentRow1 = closestGridPosition[1];
+    let closestGridPosition = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
+    let closestCol =  constrain(closestGridPosition[0] - 1, 0, (width - marginSize*2)/gridsize-1);
+    let closestRow0 = closestGridPosition[1] - 1;
+    let closestRow1 = closestGridPosition[1];
 
-      eventInfo.timeslots[user][i].sel = false;
-      selectingState = false;
-
-      if (eventInfo.timeslots[user][i].col == currentCol) {
-        if (eventInfo.timeslots[user][i].dir == 1) { // going down -> row0 < row1
-          if (currentRow0 >= eventInfo.timeslots[user][i].row0 && currentRow1 <= eventInfo.timeslots[user][i].row1) {
-            eventInfo.timeslots[user][i].sel = true;
-            selectingState = true;
-          }
-        }
-        else { // going up -> row0 > row1
-          if (currentRow0 <= eventInfo.timeslots[user][i].row0 && currentRow1 >= eventInfo.timeslots[user][i].row1) {
-            eventInfo.timeslots[user][i].sel = true;
-            selectingState = true;
-          }
-        }
-      }
-    }
+    let currentDay = eventInfo.timeslots[user][closestCol];
+    console.log(currentDay);
 
     if (
       mouseX > marginSize + overflow &&
@@ -147,7 +132,8 @@ function mousePressed(_event) {
       mouseY < height - marginSize - overflow &&
       !selectingState
     ) {
-      eventInfo.timeslots[user].push({ col: closestGridPosition[0] - 1, row0: closestGridPosition[1] - 1, row1: closestGridPosition[1], dir: 1, sel: false });
+      eventInfo.timeslots[user][closestCol].push(new TimeSlot(closestCol, closestRow0, closestRow1));
+      lastColumn = closestCol;
     }
   }
 }
@@ -159,26 +145,25 @@ function mouseDragged(_event) {
     if (mouseX < marginSize + overflow || mouseX > width - marginSize + overflow || mouseY < marginSize + overflow || mouseY > height - marginSize - overflow * 2 || selectingState) {
       return
     }
-
-    if (eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0 * gridsize + marginSize + overflow > mouseY && eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].dir == 1) {
-      eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].dir = -1;
-      eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0++;
+    const lastIndex = eventInfo.timeslots[user][lastColumn].length - 1;
+    if (eventInfo.timeslots[user][lastColumn][lastIndex].row0 * gridsize + marginSize + overflow > mouseY && eventInfo.timeslots[user][lastColumn][lastIndex].dir == 1) {
+      eventInfo.timeslots[user][lastColumn][lastIndex].dir = -1;
+      eventInfo.timeslots[user][lastColumn][lastIndex].row0++;
     }
-    else if (eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0 * gridsize + marginSize + overflow < mouseY && eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].dir == -1) {
-      eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].dir = 1;
-      eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0--;
+    else if (eventInfo.timeslots[user][lastColumn][lastIndex].row0 * gridsize + marginSize + overflow < mouseY && eventInfo.timeslots[user][lastColumn][lastIndex].dir == -1) {
+      eventInfo.timeslots[user][lastColumn][lastIndex].dir = 1;
+      eventInfo.timeslots[user][lastColumn][lastIndex].row0--;
     }
-    if (eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].dir == 1) {
+    if (eventInfo.timeslots[user][lastColumn][lastIndex].dir == 1) {
       i = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
     }
     else {
       i = snapUp(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
     }
-    if (eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row1 != i[1]) {
-      eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row1 = i[1];
+    if (eventInfo.timeslots[user][lastColumn][lastIndex].row1 != i[1]) {
+      eventInfo.timeslots[user][lastColumn][lastIndex].row1 = i[1];
     }
-    console.log(eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0);
-    console.log(eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0);
+
   }
 }
 
@@ -197,6 +182,8 @@ function init() {
   }
   overflow = (width - marginSize * 2) % gridsize / 2;
   marginSize = width > height ? width / marginPercent : height / marginPercent;
+  for(let i = 0; i < (width - marginSize*2)/gridsize-1; i++)
+    eventInfo.timeslots[user].push([]);
 }
 
 function pillCollision(x, y, w, h, c) {

@@ -8,7 +8,13 @@ class TimeSlot {
     }
 
     render(){
-        rect(gridsize * this.column +SM+marginSize + overflow, gridsize * this.row0 + SM+marginSize + overflow, gridsize- SM*2, (gridsize * ((this.row1 + 1)-(this.row0 + 1))) - SM * 2 * this.dir, SM*2);
+        rect(
+            gridsize * this.column + SM + marginSize + overflow,
+            gridsize * this.row0 + SM * this.dir + marginSize + overflow,
+            gridsize- SM * 2,
+            (gridsize * ((this.row1 + 1)-(this.row0 + 1))) - SM * 2 * this.dir,
+            SM * 2
+            );
     }
 }
 
