@@ -155,7 +155,7 @@ function mouseDragged(_event) {
   let i = [marginSize, marginSize];
   
   if (user != -1) {
-    if (mouseX < marginSize + overflow || mouseX > width - marginSize + overflow || mouseY < marginSize + 2 || mouseY > height - marginSize - 2 || selectingState) {
+    if (mouseX < marginSize + overflow || mouseX > width - marginSize + overflow || mouseY < marginSize + overflow || mouseY > height - marginSize - overflow * 2 || selectingState) {
       return
     }
 

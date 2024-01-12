@@ -1,0 +1,3 @@
+class timeslot{
+    constructor(column,)
+}
