@@ -46,7 +46,8 @@ function draw() {
         }
         rect(
           (gridsize * (eventInfo.timeslots[i][j].col) + SM) + marginSize + overflow,
-          gridsize * (eventInfo.timeslots[i][j].row0) + SM * eventInfo.timeslots[i][j].dir + marginSize + overflow, gridsize - SM * 2,
+          gridsize * (eventInfo.timeslots[i][j].row0) + SM * eventInfo.timeslots[i][j].dir + marginSize + overflow,
+          gridsize - SM * 2,
           (gridsize * ((eventInfo.timeslots[i][j].row1 + 1) - (eventInfo.timeslots[i][j].row0 + 1))) - SM * 2 * eventInfo.timeslots[i][j].dir,
           5
         );
@@ -110,7 +111,8 @@ function mousePressed(_event) {
   drawflag = true;
   let closestGridPosition = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
 
-  console.log(closestGridPosition);
+  // console.log(closestGridPosition);
+  console.log("mouse x: " + mouseX + " mouse y: " + mouseY);
   
   if (user != -1) {
     for (var i = 0; i < eventInfo.timeslots[user].length; i++) {
@@ -137,7 +139,13 @@ function mousePressed(_event) {
       }
     }
     
-    if (mouseX > marginSize && mouseX < width - marginSize && mouseY > marginSize && mouseY < height - marginSize && !selectingState) {
+    if (
+      mouseX > marginSize + overflow &&
+      mouseX < width - marginSize + overflow &&
+      mouseY > marginSize + overflow &&
+      mouseY < height - marginSize - overflow &&
+      !selectingState
+      ) {
       eventInfo.timeslots[user].push({ col: closestGridPosition[0] - 1, row0: closestGridPosition[1] - 1, row1: closestGridPosition[1], dir: 1, sel: false });
     }
   }
@@ -147,6 +155,10 @@ function mouseDragged(_event) {
   let i = [marginSize, marginSize];
   
   if (user != -1) {
+    if (mouseX < marginSize + overflow || mouseX > width - marginSize + overflow || mouseY < marginSize + 2 || mouseY > height - marginSize - 2 || selectingState) {
+      return
+    }
+
     if (eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0 * gridsize + marginSize + overflow > mouseY && eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].dir == 1) {
       eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].dir = -1;
       eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0++;
@@ -164,6 +176,8 @@ function mouseDragged(_event) {
     if (eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row1 != i[1]) {
       eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row1 = i[1];
     }
+    console.log(eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0);
+    console.log(eventInfo.timeslots[user][eventInfo.timeslots[user].length - 1].row0);
   }
 }
 
