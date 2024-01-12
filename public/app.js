@@ -1,6 +1,6 @@
 const gridsize = 40;
 const pointSize = 3;
-const SM = 3;
+const SM = 3; // rounding of cells
 
 let marginSize = 20;
 let marginPercent = 10;
@@ -9,14 +9,17 @@ let drawflag = false;
 let timeslots = [{ col: 0, row0: 0, row1: 1 }];
 let user = 0;
 let modeView = false;
+
+
 let eventInfo = {
   eventName: "default",
   attendies: ["Default"],
-  timeslots: [[{ col: 0, row0: 0, row1: 1, dir: 1 , sel: false}]],
+  eventDates: 7,
+  timeslots: [[[new TimeSlot(0, 0, 1)]]], // [user][column][timeslot]
 };
 
 let UIState = {
-  editButton:{x:10,y:10,width:40,height:20,curve:10, pressed: false}
+  editButton: { x: 10, y: 10, width: 40, height: 20, curve: 10, pressed: false }
 };
 let selectingState = false;
 
@@ -24,9 +27,9 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   init();
   textAlign(CENTER);
-  UIState.editButton.x = width / 2 - (UIState.editButton.width/2);
-  UIState.editButton.y = marginSize/2 - (UIState.editButton.height/2);
-  
+  UIState.editButton.x = width / 2 - (UIState.editButton.width / 2);
+  UIState.editButton.y = marginSize / 2 - (UIState.editButton.height / 2);
+
 }
 
 function draw() {
@@ -35,27 +38,27 @@ function draw() {
 
   fill(100, 50);
 
-  if(user != -1 || modeView){
+  if (user == -1 || modeView) {
     for (let i = 0; i < eventInfo.timeslots.length; i++) {
       for (let j = 0; j < eventInfo.timeslots[i].length; j++) {
-        if(eventInfo.timeslots[i][j].sel){
-          fill('red');
+        for (let k = 0; k < eventInfo.timeslots[i][j].length; k++) {
+          eventInfo.timeslots[i][j][k].render();
         }
-        else{
-          fill(100,50)
-        }
-        rect(
-          (gridsize * (eventInfo.timeslots[i][j].col) + SM) + marginSize + overflow,
-          gridsize * (eventInfo.timeslots[i][j].row0) + SM * eventInfo.timeslots[i][j].dir + marginSize + overflow,
-          gridsize - SM * 2,
-          (gridsize * ((eventInfo.timeslots[i][j].row1 + 1) - (eventInfo.timeslots[i][j].row0 + 1))) - SM * 2 * eventInfo.timeslots[i][j].dir,
-          5
-        );
       }
     }
   }
-  else{
-
+  else {
+      for (let j = 0; j < eventInfo.timeslots[user].length; j++) {
+        for (let k = 0; k < eventInfo.timeslots[user][j].length; k++) {
+          if (eventInfo.timeslots[user][j][k].sel) {
+            fill('red');
+          }
+          else {
+            fill(100, 50);
+          }
+        }
+        eventInfo.timeslots[user][j][k].render();
+      }
   }
 
   fill(150);
@@ -83,16 +86,16 @@ function viewToggle() {
   let t = "view";
   if (UIState.editButton.pressed) {
     fill(200);
-    
+
   }
-  else{
+  else {
     fill(150);
     t = "edit";
   }
-  rect(UIState.editButton.x,UIState.editButton.y,UIState.editButton.width,UIState.editButton.height,UIState.editButton.curve);
+  rect(UIState.editButton.x, UIState.editButton.y, UIState.editButton.width, UIState.editButton.height, UIState.editButton.curve);
   //circle(width / 2,marginSize/2,20);
   fill(250);
-  text(t,width/2,marginSize/2 + textSize()/4);
+  text(t, width / 2, marginSize / 2 + textSize() / 4);
   pop();
 }
 
@@ -105,15 +108,13 @@ function snapUp(x, y) {
 }
 
 function mousePressed(_event) {
-  if(dist(mouseX,mouseY,UIState.editButton.x+UIState.editButton.width/2,UIState.editButton.y+UIState.editButton.height/2) < UIState.editButton.width/2){
+  if (pillCollision(UIState.editButton.x, UIState.editButton.y, UIState.editButton.width, UIState.editButton.height, UIState.editButton.curve)) {
     UIState.editButton.pressed = !UIState.editButton.pressed;
   }
   drawflag = true;
   let closestGridPosition = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
 
-  // console.log(closestGridPosition);
-  console.log("mouse x: " + mouseX + " mouse y: " + mouseY);
-  
+
   if (user != -1) {
     for (var i = 0; i < eventInfo.timeslots[user].length; i++) {
       var currentCol = closestGridPosition[0] - 1;
@@ -138,22 +139,22 @@ function mousePressed(_event) {
         }
       }
     }
-    
+
     if (
       mouseX > marginSize + overflow &&
       mouseX < width - marginSize + overflow &&
       mouseY > marginSize + overflow &&
       mouseY < height - marginSize - overflow &&
       !selectingState
-      ) {
+    ) {
       eventInfo.timeslots[user].push({ col: closestGridPosition[0] - 1, row0: closestGridPosition[1] - 1, row1: closestGridPosition[1], dir: 1, sel: false });
     }
   }
-} 
+}
 
 function mouseDragged(_event) {
   let i = [marginSize, marginSize];
-  
+
   if (user != -1) {
     if (mouseX < marginSize + overflow || mouseX > width - marginSize + overflow || mouseY < marginSize + overflow || mouseY > height - marginSize - overflow * 2 || selectingState) {
       return
@@ -196,4 +197,17 @@ function init() {
   }
   overflow = (width - marginSize * 2) % gridsize / 2;
   marginSize = width > height ? width / marginPercent : height / marginPercent;
+}
+
+function pillCollision(x, y, w, h, c) {
+  let f1 = { x: x + c, y: y + c };
+  let f2 = { x: x + w - c, y: y + c };
+  let b = { x1: x + c, y1: y, x2: x + w - c, y2: y + h };
+
+  let d2f1 = dist(mouseX, mouseY, f1.x, f1.y);
+  let d2f2 = dist(mouseX, mouseY, f2.x, f2.y);
+
+  if (d2f1 <= c || d2f2 <= c || (mouseX >= b.x1 && mouseX <= b.x2 && mouseY >= b.y1 && mouseY <= b.y2)) {
+    return true;
+  }
 }
