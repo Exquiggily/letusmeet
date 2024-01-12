@@ -6,7 +6,6 @@ let marginSize = 20;
 let marginPercent = 10;
 let overflow = 5;
 let drawflag = false;
-let timeslots = [{ col: 0, row0: 0, row1: 1 }];
 let user = 0;
 let modeView = false;
 
@@ -14,7 +13,7 @@ let modeView = false;
 let eventInfo = {
   eventName: "default",
   attendies: ["Default"],
-  eventDates: 7,
+  eventDates: [],
   timeslots: [[[new TimeSlot(0, 0, 1)],[],[],[],[],[],[],[]]], // [user][column][timeslot]
 };
 
@@ -49,18 +48,17 @@ function draw() {
     }
   }
   else {
-      for (let j = 0; j < eventInfo.timeslots[user].length; j++) {
-        for (let k = 0; k < eventInfo.timeslots[user][j].length; k++) {
-          if (eventInfo.timeslots[user][j][k].sel) {
-            fill('red');
-          }
-          else {
-            fill(100, 50);
-          }
-          eventInfo.timeslots[user][j][k].render();
+    for (let j = 0; j < eventInfo.timeslots[user].length; j++) {
+      for (let k = 0; k < eventInfo.timeslots[user][j].length; k++) {
+        if (eventInfo.timeslots[user][j][k].selected) {
+          fill('red');
         }
-        
+        else {
+          fill(100, 50);
+        }
+        eventInfo.timeslots[user][j][k].render();
       }
+    }
   }
 
   fill(150);
@@ -114,17 +112,31 @@ function mousePressed(_event) {
     UIState.editButton.pressed = !UIState.editButton.pressed;
   }
 
+
+  if(selectingState)
+    return;
+
   drawflag = true;
 
   if (user != -1) {
     let closestGridPosition = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
-    let closestCol =  constrain(closestGridPosition[0] - 1, 0, (width - marginSize*2)/gridsize-1);
+    let closestCol = constrain(closestGridPosition[0] - 1, 0, (width - marginSize*2)/gridsize-1);
     let closestRow0 = closestGridPosition[1] - 1;
     let closestRow1 = closestGridPosition[1];
 
     let currentDay = eventInfo.timeslots[user][closestCol];
-    console.log(currentDay);
+    // console.log(currentDay);
+    if(!selectingState){
+      for(let i = 0; i < currentDay.length; i++){
+        console.log("checkingg\nDir: "+currentDay[i].dir+"\ninboundsdir1: "+ (currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 > closestGridPosition[1] ? "true":"false")+"\ninboundsdir2: "+(currentDay[i].row0 > closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]));
+        if(currentDay[i].dir == 1 ? currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 > closestGridPosition[1] : currentDay[i].row0 > closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]){
+          currentDay[i].selected = true;
+          return;
+        }
+        
+      }
 
+    }
     if (
       mouseX > marginSize + overflow &&
       mouseX < width - marginSize + overflow &&
@@ -141,7 +153,7 @@ function mousePressed(_event) {
 function mouseDragged(_event) {
   let i = [marginSize, marginSize];
 
-  if (user != -1) {
+  if (user != -1 && drawflag) {
     if (mouseX < marginSize + overflow || mouseX > width - marginSize + overflow || mouseY < marginSize + overflow || mouseY > height - marginSize - overflow * 2 || selectingState) {
       return
     }
@@ -163,7 +175,6 @@ function mouseDragged(_event) {
     if (eventInfo.timeslots[user][lastColumn][lastIndex].row1 != i[1]) {
       eventInfo.timeslots[user][lastColumn][lastIndex].row1 = i[1];
     }
-
   }
 }
 
