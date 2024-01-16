@@ -111,10 +111,32 @@ function mousePressed(_event) {
   if (pillCollision(UIState.editButton.x, UIState.editButton.y, UIState.editButton.width, UIState.editButton.height, UIState.editButton.curve)) {
     UIState.editButton.pressed = !UIState.editButton.pressed;
   }
+  
 
+  if(selectingState){
+    //insert UI checks for popup on selected.
+    if(false){ //if mouse clicks on in popup element.
 
-  if(selectingState)
-    return;
+      return;
+    }
+    else{ // otherwise deselect.
+      for(let i = 0; i < eventInfo.timeslots[user].length; i++){
+      for(let j = 0; j < eventInfo.timeslots[user][i].length; j++){
+        if(eventInfo.timeslots[user][i][j].selected){
+          eventInfo.timeslots[user][i][j].selected = false;
+          selectingState = false;
+          break;
+        }
+      }
+    }
+    if(selectingState){
+      console.error("State indicates selection, but no user selection was found!");
+    }
+    }
+    
+    
+  }
+    
 
   drawflag = true;
 
@@ -129,8 +151,9 @@ function mousePressed(_event) {
     if(!selectingState){
       for(let i = 0; i < currentDay.length; i++){
         console.log("checkingg\nDir: "+currentDay[i].dir+"\ninboundsdir1: "+ (currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 > closestGridPosition[1] ? "true":"false")+"\ninboundsdir2: "+(currentDay[i].row0 > closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]));
-        if(currentDay[i].dir == 1 ? currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 > closestGridPosition[1] : currentDay[i].row0 > closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]){
+        if(currentDay[i].dir == 1 ? currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 >= closestGridPosition[1] : currentDay[i].row0 >= closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]){
           currentDay[i].selected = true;
+          selectingState = true;
           return;
         }
         
@@ -180,6 +203,20 @@ function mouseDragged(_event) {
 
 function mouseReleased(_event) {
   drawflag = false;
+  if(user != -1 && UIState.editButton.pressed){
+    let lastBlock = eventInfo.timeslots[user][lastColumn][eventInfo.timeslots[user][lastColumn].length-1];
+    for(let i = 0 ; i < eventInfo.timeslots[user][lastColumn].length;i++){
+      let curBlock = eventInfo.timeslots[user][lastColumn][i]; // row below needs to be seperated, as diffrent actions occur for diffrent situations
+      if(curBlock.dir == 1 ? lastBlock.dir == 1 ? lastBlock.row1 < curBlock.row0 || lastBlock.row0 > curBlock.row1 : lastBlock.row1 > curBlock.row0 || lastBlock.row0 < curBlock.row1 : lastBlock.dir == 1 ? lastBlock.row0 > curBlock.row0 || lastBlock.row1 < curBlock.row1: curBlock.row1 > lastBlock.row0 || curBlock.row0 < lastBlock.row1)
+      {
+
+      }
+      else{
+        //is overlapping
+
+      }
+    }
+  }
 }
 
 function windowResized() {
@@ -208,4 +245,6 @@ function pillCollision(x, y, w, h, c) {
   if (d2f1 <= c || d2f2 <= c || (mouseX >= b.x1 && mouseX <= b.x2 && mouseY >= b.y1 && mouseY <= b.y2)) {
     return true;
   }
+
+
 }
