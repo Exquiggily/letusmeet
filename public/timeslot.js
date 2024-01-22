@@ -16,4 +16,8 @@ class TimeSlot {
       SM * 2
     )
   }
+
+  getHitbox(){
+    return this.dir == 1 ? Array(this.row1-this.row0).fill().map((_, i) => this.row0+i) : Array(this.row0-this.row1).fill().map((_,i) => this.row1+i);
+  }
 }

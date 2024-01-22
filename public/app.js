@@ -13,8 +13,8 @@ let modeView = false;
 let eventInfo = {
   eventName: "default",
   attendies: ["Default"],
-  eventDates: [],
-  timeslots: [[[new TimeSlot(0, 0, 1)],[],[],[],[],[],[],[]]], // [user][column][timeslot]
+  eventDates: ["25/4","26/4","27/4","28/4","29/4","30/4"],
+  timeslots: [[[new TimeSlot(0, 0, 1)]]], // [user][column][timeslot]
 };
 
 let UIState = {
@@ -29,7 +29,20 @@ function setup() {
   textAlign(CENTER);
   UIState.editButton.x = width / 2 - (UIState.editButton.width / 2);
   UIState.editButton.y = marginSize / 2 - (UIState.editButton.height / 2);
-
+  let v = createButton("\<i class=\"bi bi-vector-pen\"\>\<\/i\>");
+  v.position(UIState.editButton.x,UIState.editButton.y);
+  v.attribute('type', 'button');
+  v.class("btn btn-outline-secondary");
+  v.mouseClicked(()=> {
+    UIState.editButton.pressed = !UIState.editButton.pressed;
+    if(UIState.editButton.pressed){
+      v.html("\<i class=\"bi bi-eye\"\>\<\/i\>");
+    }
+    else{
+      v.html("\<i class=\"bi bi-vector-pen\"\>\<\/i\>");
+    }
+    
+});
 }
 
 function draw() {
@@ -65,7 +78,7 @@ function draw() {
 
   circle(mouseX, mouseY, 10);
   grid(marginSize, marginSize, width - marginSize, height - marginSize);
-  viewToggle();
+  //viewToggle();
 
   if (drawflag) {
     fill("red");
@@ -75,7 +88,7 @@ function draw() {
 
 function grid(x, y, x2, y2) {
   for (let i = 0; i < (y2 - y) / gridsize; i++) {
-    for (let j = 0; j < (x2 - x) / gridsize; j++) {
+    for (let j = 0; j < min((x2 - x) / gridsize, eventInfo.eventDates.length); j++) {
       circle(x + (j * gridsize) + overflow, y + (i * gridsize) + overflow, pointSize);
     }
   }
@@ -113,7 +126,7 @@ function mousePressed(_event) {
   }
   
 
-  if(selectingState){
+  if(selectingState && !UIState.editButton.pressed){
     //insert UI checks for popup on selected.
     if(false){ //if mouse clicks on in popup element.
 
@@ -140,7 +153,7 @@ function mousePressed(_event) {
 
   drawflag = true;
 
-  if (user != -1) {
+  if (user != -1 && !UIState.editButton.pressed) {
     let closestGridPosition = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
     let closestCol = constrain(closestGridPosition[0] - 1, 0, (width - marginSize*2)/gridsize-1);
     let closestRow0 = closestGridPosition[1] - 1;
@@ -176,7 +189,7 @@ function mousePressed(_event) {
 function mouseDragged(_event) {
   let i = [marginSize, marginSize];
 
-  if (user != -1 && drawflag) {
+  if (user != -1 && drawflag && !UIState.editButton.pressed) {
     if (mouseX < marginSize + overflow || mouseX > width - marginSize + overflow || mouseY < marginSize + overflow || mouseY > height - marginSize - overflow * 2 || selectingState) {
       return
     }
@@ -203,17 +216,25 @@ function mouseDragged(_event) {
 
 function mouseReleased(_event) {
   drawflag = false;
-  if(user != -1 && UIState.editButton.pressed){
+  if(user != -1 && !UIState.editButton.pressed){
     let lastBlock = eventInfo.timeslots[user][lastColumn][eventInfo.timeslots[user][lastColumn].length-1];
-    for(let i = 0 ; i < eventInfo.timeslots[user][lastColumn].length;i++){
-      let curBlock = eventInfo.timeslots[user][lastColumn][i]; // row below needs to be seperated, as diffrent actions occur for diffrent situations
-      if(curBlock.dir == 1 ? lastBlock.dir == 1 ? lastBlock.row1 < curBlock.row0 || lastBlock.row0 > curBlock.row1 : lastBlock.row1 > curBlock.row0 || lastBlock.row0 < curBlock.row1 : lastBlock.dir == 1 ? lastBlock.row0 > curBlock.row0 || lastBlock.row1 < curBlock.row1: curBlock.row1 > lastBlock.row0 || curBlock.row0 < lastBlock.row1)
-      {
+    let lastRows = lastBlock.getHitbox();
+    for(let i = 0 ; i < eventInfo.timeslots[user][lastColumn].length-1;i++){
+      let curBlock = eventInfo.timeslots[user][lastColumn][i]; 
 
-      }
-      else{
-        //is overlapping
-
+      let curRows = curBlock.getHitbox();
+      if(curRows.find(i => lastRows.find(j => abs(i-j) <= 1) != null) != null){
+        if(lastBlock.dir == 1){
+          curBlock.row0 = curBlock.row0 < lastBlock.row0 ? curBlock.row0 : lastBlock.row0;
+          curBlock.row1 = curBlock.row1 > lastBlock.row1 ? curBlock.row1 : lastBlock.row1;
+        }
+        else{
+          curBlock.row0 = curBlock.row0 < lastBlock.row1 ? curBlock.row0 : lastBlock.row1;
+          curBlock.row1 = curBlock.row1 > lastBlock.row0 ? curBlock.row1 : lastBlock.row0;
+        }
+        eventInfo.timeslots[user][lastColumn].pop();
+        mouseReleased();
+        return;
       }
     }
   }
@@ -229,8 +250,8 @@ function init() {
     marginPercent = 20;
   }
   overflow = (width - marginSize * 2) % gridsize / 2;
-  marginSize = width > height ? width / marginPercent : height / marginPercent;
-  for(let i = 0; i < (width - marginSize*2)/gridsize-1; i++)
+  marginSize = width < height ? width / marginPercent : height / marginPercent;
+  for(let i = eventInfo.timeslots[0].length; i < eventInfo.eventDates.length; i++)
     eventInfo.timeslots[user].push([]);
 }
 
