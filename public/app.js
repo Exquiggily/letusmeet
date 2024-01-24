@@ -9,11 +9,15 @@ let drawflag = false;
 let user = 0;
 let modeView = false;
 
+let xMin;
+let xMax;
+let yMin;
+let yMax;
 
 let eventInfo = {
   eventName: "default",
   attendies: ["Default"],
-  eventDates: ["25/4","26/4","27/4","28/4","29/4","30/4"],
+  eventDates: ["25/4", "26/4", "27/4", "28/4", "29/4", "30/4"],
   timeslots: [[[new TimeSlot(0, 0, 1)]]], // [user][column][timeslot]
 };
 
@@ -27,22 +31,24 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   init();
   textAlign(CENTER);
+
   UIState.editButton.x = width / 2 - (UIState.editButton.width / 2);
   UIState.editButton.y = marginSize / 2 - (UIState.editButton.height / 2);
+
   let v = createButton("\<i class=\"bi bi-vector-pen\"\>\<\/i\>");
-  v.position(UIState.editButton.x,UIState.editButton.y);
+  v.position(UIState.editButton.x, UIState.editButton.y);
   v.attribute('type', 'button');
   v.class("btn btn-outline-secondary");
-  v.mouseClicked(()=> {
+  v.mouseClicked(() => {
     UIState.editButton.pressed = !UIState.editButton.pressed;
-    if(UIState.editButton.pressed){
+    if (UIState.editButton.pressed) {
       v.html("\<i class=\"bi bi-eye\"\>\<\/i\>");
     }
-    else{
+    else {
       v.html("\<i class=\"bi bi-vector-pen\"\>\<\/i\>");
     }
-    
-});
+
+  });
 }
 
 function draw() {
@@ -64,12 +70,13 @@ function draw() {
     for (let j = 0; j < eventInfo.timeslots[user].length; j++) {
       for (let k = 0; k < eventInfo.timeslots[user][j].length; k++) {
         if (eventInfo.timeslots[user][j][k].selected) {
-          fill('red');
+          fill('red'); // to change to a different shade of grey
+          eventInfo.timeslots[user][j][k].renderActive();
         }
         else {
           fill(100, 50);
+          eventInfo.timeslots[user][j][k].render();
         }
-        eventInfo.timeslots[user][j][k].render();
       }
     }
   }
@@ -78,7 +85,6 @@ function draw() {
 
   circle(mouseX, mouseY, 10);
   grid(marginSize, marginSize, width - marginSize, height - marginSize);
-  //viewToggle();
 
   if (drawflag) {
     fill("red");
@@ -88,28 +94,10 @@ function draw() {
 
 function grid(x, y, x2, y2) {
   for (let i = 0; i < (y2 - y) / gridsize; i++) {
-    for (let j = 0; j < min((x2 - x) / gridsize, eventInfo.eventDates.length); j++) {
+    for (let j = 0; j < Math.min((x2 - x) / gridsize, eventInfo.eventDates.length); j++) {
       circle(x + (j * gridsize) + overflow, y + (i * gridsize) + overflow, pointSize);
     }
   }
-}
-
-function viewToggle() {
-  push();
-  let t = "view";
-  if (UIState.editButton.pressed) {
-    fill(200);
-
-  }
-  else {
-    fill(150);
-    t = "edit";
-  }
-  rect(UIState.editButton.x, UIState.editButton.y, UIState.editButton.width, UIState.editButton.height, UIState.editButton.curve);
-  //circle(width / 2,marginSize/2,20);
-  fill(250);
-  text(t, width / 2, marginSize / 2 + textSize() / 4);
-  pop();
 }
 
 function snap(x, y) {
@@ -124,54 +112,50 @@ function mousePressed(_event) {
   if (pillCollision(UIState.editButton.x, UIState.editButton.y, UIState.editButton.width, UIState.editButton.height, UIState.editButton.curve)) {
     UIState.editButton.pressed = !UIState.editButton.pressed;
   }
-  
 
-  if(selectingState && !UIState.editButton.pressed){
+  if (!inBounds()) {
+    return;
+  }
+
+  if (selectingState && !UIState.editButton.pressed) {
     //insert UI checks for popup on selected.
-    if(false){ //if mouse clicks on in popup element.
-
+    if (false) { //if mouse clicks on in popup element.
       return;
     }
-    else{ // otherwise deselect.
-      for(let i = 0; i < eventInfo.timeslots[user].length; i++){
-      for(let j = 0; j < eventInfo.timeslots[user][i].length; j++){
-        if(eventInfo.timeslots[user][i][j].selected){
-          eventInfo.timeslots[user][i][j].selected = false;
-          selectingState = false;
-          break;
+    else { // otherwise deselect.
+      for (let i = 0; i < eventInfo.timeslots[user].length; i++) {
+        for (let j = 0; j < eventInfo.timeslots[user][i].length; j++) {
+          if (eventInfo.timeslots[user][i][j].selected) {
+            eventInfo.timeslots[user][i][j].selected = false;
+            selectingState = false;
+            break;
+          }
         }
       }
+      if (selectingState) {
+        console.error("State indicates selection, but no user selection was found!");
+      }
     }
-    if(selectingState){
-      console.error("State indicates selection, but no user selection was found!");
-    }
-    }
-    
-    
   }
-    
 
   drawflag = true;
 
   if (user != -1 && !UIState.editButton.pressed) {
     let closestGridPosition = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
-    let closestCol = constrain(closestGridPosition[0] - 1, 0, (width - marginSize*2)/gridsize-1);
+    let closestCol = constrain(closestGridPosition[0] - 1, 0, (width - marginSize * 2) / gridsize - 1);
     let closestRow0 = closestGridPosition[1] - 1;
     let closestRow1 = closestGridPosition[1];
 
     let currentDay = eventInfo.timeslots[user][closestCol];
-    // console.log(currentDay);
-    if(!selectingState){
-      for(let i = 0; i < currentDay.length; i++){
-        console.log("checkingg\nDir: "+currentDay[i].dir+"\ninboundsdir1: "+ (currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 > closestGridPosition[1] ? "true":"false")+"\ninboundsdir2: "+(currentDay[i].row0 > closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]));
-        if(currentDay[i].dir == 1 ? currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 >= closestGridPosition[1] : currentDay[i].row0 >= closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]){
+    if (!selectingState) {
+      for (let i = 0; i < currentDay.length; i++) {
+        // console.log("checkingg\nDir: " + currentDay[i].dir + "\ninboundsdir1: " + (currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 > closestGridPosition[1] ? "true" : "false") + "\ninboundsdir2: " + (currentDay[i].row0 > closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]));
+        if (currentDay[i].dir == 1 ? currentDay[i].row0 < closestGridPosition[1] && currentDay[i].row1 >= closestGridPosition[1] : currentDay[i].row0 >= closestGridPosition[1] && currentDay[i].row1 < closestGridPosition[1]) {
           currentDay[i].selected = true;
           selectingState = true;
           return;
         }
-        
       }
-
     }
     if (
       mouseX > marginSize + overflow &&
@@ -216,19 +200,20 @@ function mouseDragged(_event) {
 
 function mouseReleased(_event) {
   drawflag = false;
-  if(user != -1 && !UIState.editButton.pressed){
-    let lastBlock = eventInfo.timeslots[user][lastColumn][eventInfo.timeslots[user][lastColumn].length-1];
+
+  if (user != -1 && !UIState.editButton.pressed) {
+    let lastBlock = eventInfo.timeslots[user][lastColumn][eventInfo.timeslots[user][lastColumn].length - 1];
     let lastRows = lastBlock.getHitbox();
-    for(let i = 0 ; i < eventInfo.timeslots[user][lastColumn].length-1;i++){
-      let curBlock = eventInfo.timeslots[user][lastColumn][i]; 
+    for (let i = 0; i < eventInfo.timeslots[user][lastColumn].length - 1; i++) {
+      let curBlock = eventInfo.timeslots[user][lastColumn][i];
 
       let curRows = curBlock.getHitbox();
-      if(curRows.find(i => lastRows.find(j => abs(i-j) <= 1) != null) != null){
-        if(lastBlock.dir == 1){
+      if (curRows.find(i => lastRows.find(j => abs(i - j) <= 1) != null) != null) {
+        if (lastBlock.dir == 1) {
           curBlock.row0 = curBlock.row0 < lastBlock.row0 ? curBlock.row0 : lastBlock.row0;
           curBlock.row1 = curBlock.row1 > lastBlock.row1 ? curBlock.row1 : lastBlock.row1;
         }
-        else{
+        else {
           curBlock.row0 = curBlock.row0 < lastBlock.row1 ? curBlock.row0 : lastBlock.row1;
           curBlock.row1 = curBlock.row1 > lastBlock.row0 ? curBlock.row1 : lastBlock.row0;
         }
@@ -249,10 +234,18 @@ function init() {
   if (windowWidth < 400) {
     marginPercent = 20;
   }
+
   overflow = (width - marginSize * 2) % gridsize / 2;
   marginSize = width < height ? width / marginPercent : height / marginPercent;
-  for(let i = eventInfo.timeslots[0].length; i < eventInfo.eventDates.length; i++)
+
+  for (let i = eventInfo.timeslots[0].length; i < eventInfo.eventDates.length; i++) {
     eventInfo.timeslots[user].push([]);
+  }
+
+  xMin = marginSize + overflow;
+  xMax = marginSize + (Math.min((width - marginSize - marginSize) / gridsize, eventInfo.eventDates.length) - 1) * gridsize + overflow;
+  yMin = marginSize + overflow;
+  yMax = marginSize + ((height - marginSize - marginSize) / gridsize - 1) * gridsize + overflow * 2;
 }
 
 function pillCollision(x, y, w, h, c) {
@@ -266,6 +259,8 @@ function pillCollision(x, y, w, h, c) {
   if (d2f1 <= c || d2f2 <= c || (mouseX >= b.x1 && mouseX <= b.x2 && mouseY >= b.y1 && mouseY <= b.y2)) {
     return true;
   }
+}
 
-
+function inBounds() {
+  return mouseX > xMin && mouseX < xMax && mouseY > yMin && mouseY < yMax;
 }
