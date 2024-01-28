@@ -9,10 +9,12 @@ let drawflag = false;
 let user = 0;
 let modeView = false;
 
-let xMin;
-let xMax;
-let yMin;
-let yMax;
+let xMin = 0;
+let xMax = 0;
+let yMin = 0;
+let yMax = 0;
+
+let timer = 0;
 
 let eventInfo = {
   eventName: "default",
@@ -71,7 +73,8 @@ function draw() {
       for (let k = 0; k < eventInfo.timeslots[user][j].length; k++) {
         if (eventInfo.timeslots[user][j][k].selected) {
           fill('red'); // to change to a different shade of grey
-          eventInfo.timeslots[user][j][k].renderActive();
+          timer += deltaTime * 3;
+          eventInfo.timeslots[user][j][k].renderActive(timer);
         }
         else {
           fill(100, 50);
@@ -128,6 +131,7 @@ function mousePressed(_event) {
           if (eventInfo.timeslots[user][i][j].selected) {
             eventInfo.timeslots[user][i][j].selected = false;
             selectingState = false;
+            timer = 0;
             break;
           }
         }

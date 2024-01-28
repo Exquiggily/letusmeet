@@ -15,29 +15,28 @@ class TimeSlot {
       gridsize * (this.row1 + 1 - (this.row0 + 1)) - SM * 2 * this.dir,
       SM * 2
     )
-
-
-
-
   }
 
-  renderActive() {
+  renderActive(timer) {
+    let lerpAmount = lerp(SM * 2, 0, Math.min(timer, 1000) / 1000)
+
     rect(
       gridsize * this.column + SM + marginSize + overflow,
       gridsize * this.row0 + SM * this.dir + marginSize + overflow,
       gridsize - SM * 2,
       gridsize * (this.row1 + 1 - (this.row0 + 1)) - SM * 2 * this.dir,
-      0, // tl
+      lerpAmount, // tl
       SM * 2, // tr
-      0, // br
+      lerpAmount, // br
       SM * 2, // bl
     )
-
-    fill(100, 50);
-    let dot1 = {x: gridsize * this.column + SM + marginSize + overflow, y: gridsize * this.row0 + SM * this.dir + marginSize + overflow};
-    let dot2 = {x: gridsize * this.column + SM + marginSize + overflow + gridsize - SM * 2, y: gridsize * this.row0 + SM * this.dir + marginSize + overflow + gridsize * (this.row1 + 1 - (this.row0 + 1)) - SM * 2 * this.dir};
-    circle(dot1.x, dot1.y, pointSize);
-    circle(dot2.x, dot2.y, pointSize);
+    if (lerpAmount == 0) {
+      fill(100, 50);
+      let dot1 = {x: gridsize * this.column + SM + marginSize + overflow, y: gridsize * this.row0 + SM * this.dir + marginSize + overflow};
+      let dot2 = {x: gridsize * this.column + SM + marginSize + overflow + gridsize - SM * 2, y: gridsize * this.row0 + SM * this.dir + marginSize + overflow + gridsize * (this.row1 + 1 - (this.row0 + 1)) - SM * 2 * this.dir};
+      circle(dot1.x, dot1.y, pointSize);
+      circle(dot2.x, dot2.y, pointSize);
+    }
   }
 
   getHitbox() {
