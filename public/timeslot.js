@@ -1,10 +1,11 @@
 class TimeSlot {
   constructor(column, row0, row1) {
-    this.column = column
-    this.row0 = row0
-    this.row1 = row1
-    this.dir = 1
-    this.selected = false
+    this.column = column;
+    this.row0 = row0;
+    this.row1 = row1;
+    this.dir = 1;
+    this.selected = false;
+    this.timer = 0;
   }
 
   render() {
@@ -14,11 +15,11 @@ class TimeSlot {
       gridsize - SM * 2,
       gridsize * (this.row1 + 1 - (this.row0 + 1)) - SM * 2 * this.dir,
       SM * 2
-    )
+    );
   }
 
-  renderActive(timer) {
-    let lerpAmount = lerp(SM * 2, 0, Math.min(timer, 1000) / 1000)
+  renderActive() {
+    let lerpAmount = lerp(SM * 2, 0, Math.max(Math.min(this.timer, 1000), 0) / 1000)
 
     rect(
       gridsize * this.column + SM + marginSize + overflow,
@@ -29,7 +30,7 @@ class TimeSlot {
       SM * 2, // tr
       lerpAmount, // br
       SM * 2, // bl
-    )
+    );
     if (lerpAmount == 0) {
       fill(100, 50);
       let dot1 = {x: gridsize * this.column + SM + marginSize + overflow, y: gridsize * this.row0 + SM * this.dir + marginSize + overflow};

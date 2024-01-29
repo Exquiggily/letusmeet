@@ -14,8 +14,6 @@ let xMax = 0;
 let yMin = 0;
 let yMax = 0;
 
-let timer = 0;
-
 let eventInfo = {
   eventName: "default",
   attendies: ["Default"],
@@ -73,12 +71,13 @@ function draw() {
       for (let k = 0; k < eventInfo.timeslots[user][j].length; k++) {
         if (eventInfo.timeslots[user][j][k].selected) {
           fill('red'); // to change to a different shade of grey
-          timer += deltaTime * 3;
-          eventInfo.timeslots[user][j][k].renderActive(timer);
+          eventInfo.timeslots[user][j][k].renderActive();
+          eventInfo.timeslots[user][j][k].timer += deltaTime * 3;
         }
         else {
           fill(100, 50);
           eventInfo.timeslots[user][j][k].render();
+          eventInfo.timeslots[user][j][k].timer = 0;
         }
       }
     }
@@ -117,6 +116,15 @@ function mousePressed(_event) {
   }
 
   if (!inBounds()) {
+    for (let i = 0; i < eventInfo.timeslots[user].length; i++) {
+      for (let j = 0; j < eventInfo.timeslots[user][i].length; j++) {
+        if (eventInfo.timeslots[user][i][j].selected) {
+          eventInfo.timeslots[user][i][j].selected = false;
+          selectingState = false;
+          break;
+        }
+      }
+    }
     return;
   }
 
@@ -131,7 +139,6 @@ function mousePressed(_event) {
           if (eventInfo.timeslots[user][i][j].selected) {
             eventInfo.timeslots[user][i][j].selected = false;
             selectingState = false;
-            timer = 0;
             break;
           }
         }
