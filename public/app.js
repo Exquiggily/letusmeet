@@ -71,13 +71,19 @@ function draw() {
       for (let k = 0; k < eventInfo.timeslots[user][j].length; k++) {
         if (eventInfo.timeslots[user][j][k].selected) {
           fill('red'); // to change to a different shade of grey
+          eventInfo.timeslots[user][j][k].timer < 1000 ? eventInfo.timeslots[user][j][k].timer += deltaTime * 4 : eventInfo.timeslots[user][j][k].timer = 1000;
           eventInfo.timeslots[user][j][k].renderActive();
-          eventInfo.timeslots[user][j][k].timer += deltaTime * 3;
         }
         else {
           fill(100, 50);
-          eventInfo.timeslots[user][j][k].render();
-          eventInfo.timeslots[user][j][k].timer = 0;
+          if (eventInfo.timeslots[user][j][k].timer > 0) {
+            eventInfo.timeslots[user][j][k].timer -= deltaTime * 4
+            eventInfo.timeslots[user][j][k].renderActive();
+          }
+          else {
+            eventInfo.timeslots[user][j][k].timer = 0;
+            eventInfo.timeslots[user][j][k].render();
+          }
         }
       }
     }
