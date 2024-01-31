@@ -32,13 +32,10 @@ class TimeSlot {
       lerpAmount, // br
       SM * 2, // bl
     );
-
-    fill(100, lerpAmount2);
-    let dot1 = {x: gridsize * this.column + SM + marginSize + overflow, y: gridsize * this.row0 + SM * this.dir + marginSize + overflow};
-    let dot2 = {x: gridsize * this.column + SM + marginSize + overflow + gridsize - SM * 2, y: gridsize * this.row0 + SM * this.dir + marginSize + overflow + gridsize * (this.row1 + 1 - (this.row0 + 1)) - SM * 2 * this.dir};
-    circle(dot1.x, dot1.y, pointSize);
-    circle(dot2.x, dot2.y, pointSize);
-
+    
+    this.selected ? fill(255, 0, 0, lerpAmount2) : fill(100, lerpAmount2);
+    circle(gridsize * this.column + SM + marginSize + overflow, gridsize * this.row0 + SM * this.dir + marginSize + overflow, pointSize);
+    circle(gridsize * this.column + SM + marginSize + overflow + gridsize - SM * 2, gridsize * this.row0 + SM * this.dir + marginSize + overflow + gridsize * (this.row1 + 1 - (this.row0 + 1)) - SM * 2 * this.dir, pointSize);
   }
 
   getHitbox() {
