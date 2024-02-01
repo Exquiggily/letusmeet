@@ -72,7 +72,7 @@ function draw() {
         if (eventInfo.timeslots[user][j][k].selected) {
           fill('red'); // to change to a different shade of grey
           eventInfo.timeslots[user][j][k].timer < 1000 ? eventInfo.timeslots[user][j][k].timer += deltaTime * 4 : eventInfo.timeslots[user][j][k].timer = 1000;
-          if (eventInfo.timeslots[user][j][k].column == eventInfo.eventDates.length - 2) {
+          if (eventInfo.timeslots[user][j][k].column == eventInfo.eventDates.length - 1) {
             eventInfo.timeslots[user][j][k].renderActiveMax();
           }
           else {
@@ -83,7 +83,7 @@ function draw() {
           fill(100, 50);
           if (eventInfo.timeslots[user][j][k].timer > 0) {
             eventInfo.timeslots[user][j][k].timer -= deltaTime * 4
-            if (eventInfo.timeslots[user][j][k].column == eventInfo.eventDates.length - 2) {
+            if (eventInfo.timeslots[user][j][k].column == eventInfo.eventDates.length - 1) {
               eventInfo.timeslots[user][j][k].renderActiveMax();
             }
             else {
@@ -111,7 +111,7 @@ function draw() {
 
 function grid(x, y, x2, y2) {
   for (let i = 0; i < (y2 - y) / gridsize; i++) {
-    for (let j = 0; j < Math.min((x2 - x) / gridsize, eventInfo.eventDates.length); j++) {
+    for (let j = 0; j <= Math.min((x2 - x) / gridsize, eventInfo.eventDates.length); j++) {
       circle(x + (j * gridsize) + overflow, y + (i * gridsize) + overflow, pointSize);
     }
   }
