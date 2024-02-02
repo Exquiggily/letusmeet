@@ -258,7 +258,7 @@ function init() {
   }
 
   xMin = marginSize + overflow;
-  xMax = marginSize + (Math.min((width - marginSize - marginSize) / gridsize, eventInfo.eventDates.length)) * gridsize + overflow;
+  xMax = marginSize + (Math.min((width-marginSize*2) / gridsize, eventInfo.eventDates.length)+1) * gridsize + overflow;
   yMin = marginSize + overflow;
   yMax = height - marginSize - overflow;
 
