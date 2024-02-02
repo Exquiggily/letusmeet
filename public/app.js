@@ -1,8 +1,13 @@
 const gridsize = 40;
 const pointSize = 3;
+const highlightKnobSize = 6;
 const SM = 3; // rounding of cells
+const highlightColor = [163,211,156];
+const highlightKnobColor = [75,141,66];
+const highlightSpeed = 8;
 
 let marginSize = 20;
+let leftMarginSize = 20;
 let marginPercent = 10;
 let overflow = 5;
 let drawflag = false;
@@ -61,7 +66,7 @@ function draw() {
     for (let i = 0; i < eventInfo.timeslots.length; i++) {
       for (let j = 0; j < eventInfo.timeslots[i].length; j++) {
         for (let k = 0; k < eventInfo.timeslots[i][j].length; k++) {
-          eventInfo.timeslots[i][j][k].render();
+          eventInfo.timeslots[i][j][k].renderv2();
         }
       }
     }
@@ -69,30 +74,14 @@ function draw() {
   else {
     for (let j = 0; j < eventInfo.timeslots[user].length; j++) {
       for (let k = 0; k < eventInfo.timeslots[user][j].length; k++) {
+        let position = Math.min((width-marginSize*2) / gridsize, eventInfo.eventDates.length)-1 ==eventInfo.timeslots[user][j][k].column ? 1 : eventInfo.timeslots[user][j][k].column == 0 ? 0 : -1;
         if (eventInfo.timeslots[user][j][k].selected) {
-          fill('red'); // to change to a different shade of grey
-          eventInfo.timeslots[user][j][k].timer < 1000 ? eventInfo.timeslots[user][j][k].timer += deltaTime * 4 : eventInfo.timeslots[user][j][k].timer = 1000;
-          if (eventInfo.timeslots[user][j][k].column == eventInfo.eventDates.length - 1) {
-            eventInfo.timeslots[user][j][k].renderActiveMax();
-          }
-          else {
-            eventInfo.timeslots[user][j][k].renderActive();
-          }
+          fill(...highlightColor); // to change to a different shade of grey
+          eventInfo.timeslots[user][j][k].renderv2(position);
         }
         else {
           fill(100, 50);
-          if (eventInfo.timeslots[user][j][k].timer > 0) {
-            eventInfo.timeslots[user][j][k].timer -= deltaTime * 4
-            if (eventInfo.timeslots[user][j][k].column == eventInfo.eventDates.length - 1) {
-              eventInfo.timeslots[user][j][k].renderActiveMax();
-            }
-            else {
-              eventInfo.timeslots[user][j][k].renderActive();
-            }          }
-          else {
-            eventInfo.timeslots[user][j][k].timer = 0;
-            eventInfo.timeslots[user][j][k].render();
-          }
+          eventInfo.timeslots[user][j][k].renderv2(position);
         }
       }
     }
@@ -112,7 +101,7 @@ function draw() {
 function grid(x, y, x2, y2) {
   for (let i = 0; i < (y2 - y) / gridsize; i++) {
     for (let j = 0; j <= Math.min((x2 - x) / gridsize, eventInfo.eventDates.length); j++) {
-      circle(x + (j * gridsize) + overflow, y + (i * gridsize) + overflow, pointSize);
+      circle(x+leftMarginSize + (j * gridsize) + overflow, y + (i * gridsize) + overflow, pointSize);
     }
   }
 }
@@ -126,9 +115,6 @@ function snapUp(x, y) {
 }
 
 function mousePressed(_event) {
-  if (pillCollision(UIState.editButton.x, UIState.editButton.y, UIState.editButton.width, UIState.editButton.height, UIState.editButton.curve)) {
-    UIState.editButton.pressed = !UIState.editButton.pressed;
-  }
 
   console.log(mouseY);
   console.log(yMax);
@@ -170,7 +156,7 @@ function mousePressed(_event) {
   drawflag = true;
 
   if (user != -1 && !UIState.editButton.pressed) {
-    let closestGridPosition = snap(mouseX - marginSize - overflow, mouseY - marginSize - overflow);
+    let closestGridPosition = snap(mouseX - marginSize-leftMarginSize - overflow, mouseY - marginSize - overflow);
     let closestCol = constrain(closestGridPosition[0] - 1, 0, (width - marginSize * 2) / gridsize - 1);
     let closestRow0 = closestGridPosition[1] - 1;
     let closestRow1 = closestGridPosition[1];
@@ -187,8 +173,8 @@ function mousePressed(_event) {
       }
     }
     if (
-      mouseX > marginSize + overflow &&
-      mouseX < width - marginSize + overflow &&
+      mouseX > marginSize+leftMarginSize + overflow &&
+      mouseX < width - (marginSize +leftMarginSize+ overflow) &&
       mouseY > marginSize + overflow &&
       mouseY < height - marginSize - overflow &&
       !selectingState
@@ -203,7 +189,7 @@ function mouseDragged(_event) {
   let i = [marginSize, marginSize];
 
   if (user != -1 && drawflag && !UIState.editButton.pressed) {
-    if (mouseX < marginSize + overflow || mouseX > width - marginSize + overflow || mouseY < marginSize + overflow || mouseY > height - marginSize - overflow * 2 || selectingState) {
+    if (mouseX < marginSize +leftMarginSize+ overflow || mouseX > width - (marginSize +leftMarginSize+ overflow) || mouseY < marginSize + overflow || mouseY > height - marginSize - overflow * 2 || selectingState) {
       return
     }
     const lastIndex = eventInfo.timeslots[user][lastColumn].length - 1;
@@ -275,6 +261,10 @@ function init() {
   xMax = marginSize + (Math.min((width - marginSize - marginSize) / gridsize, eventInfo.eventDates.length)) * gridsize + overflow;
   yMin = marginSize + overflow;
   yMax = height - marginSize - overflow;
+
+  leftMarginSize = width/2 - (xMax-xMin)/2 -marginSize;
+  xMin += leftMarginSize;
+  xMax += leftMarginSize;
 }
 
 function pillCollision(x, y, w, h, c) {
