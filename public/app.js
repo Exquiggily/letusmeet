@@ -130,6 +130,9 @@ function mousePressed(_event) {
     UIState.editButton.pressed = !UIState.editButton.pressed;
   }
 
+  console.log(mouseY);
+  console.log(yMax);
+
   if (!inBounds()) {
     for (let i = 0; i < eventInfo.timeslots[user].length; i++) {
       for (let j = 0; j < eventInfo.timeslots[user][i].length; j++) {
@@ -271,7 +274,7 @@ function init() {
   xMin = marginSize + overflow;
   xMax = marginSize + (Math.min((width - marginSize - marginSize) / gridsize, eventInfo.eventDates.length)) * gridsize + overflow;
   yMin = marginSize + overflow;
-  yMax = marginSize + ((height - marginSize - marginSize) / gridsize) * gridsize + overflow * 2;
+  yMax = height - marginSize - overflow;
 }
 
 function pillCollision(x, y, w, h, c) {
