@@ -269,9 +269,9 @@ function init() {
   }
 
   xMin = marginSize + overflow;
-  xMax = marginSize + (Math.min((width - marginSize - marginSize) / gridsize, eventInfo.eventDates.length) - 1) * gridsize + overflow;
+  xMax = marginSize + (Math.min((width - marginSize - marginSize) / gridsize, eventInfo.eventDates.length)) * gridsize + overflow;
   yMin = marginSize + overflow;
-  yMax = marginSize + ((height - marginSize - marginSize) / gridsize - 1) * gridsize + overflow * 2;
+  yMax = marginSize + ((height - marginSize - marginSize) / gridsize) * gridsize + overflow * 2;
 }
 
 function pillCollision(x, y, w, h, c) {
